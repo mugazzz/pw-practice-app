@@ -1,51 +1,22 @@
 import { expect, test } from '@playwright/test'
+import { PageManager } from '../page_objects/PageManager'
 
 test.describe('Test login flow', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('http://localhost:4200/')
     })
     test('First test case - valid login', async ({ page }) => {
-        const username = 'mugaz@test.com'
-        const passwordc = 'test123!'
-
-        await page.getByRole('link', { name: 'Forms' }).click()
-        await page.getByText('Form Layouts').click()
-
-        const nb_card = page.locator('nb-card', { hasText: 'Using the Grid' })
-        const email_id = nb_card.getByPlaceholder('Email')
-        const password = nb_card.getByPlaceholder('Password')
-        const radio_btn = nb_card.locator('label', { hasText: 'Option 1' })
-        const sign_in_btn = nb_card.getByRole('button', { name: 'Sign in' })
-        const all_options = await nb_card.locator('nb-radio label').allTextContents()
-
-        console.log(`available options are: ${all_options}`)
-
-        for (const option of all_options) {
-            console.log(`available options is: ${option}`)
-        }
-        await email_id.fill(username)
-        await password.fill(passwordc)
-        // await radio_btn.click()
-        await radio_btn.check({ force: true })
-        await sign_in_btn.click()
-
-        await expect(email_id).toHaveValue(username)
-        await expect(password).toHaveValue(passwordc)
-
+        const pm = new PageManager(page)
+        await pm.navigateTo.formLayoutPage()
+        await pm.formLayoutPageCases.validLoginCase('mugaz@test.com', 'Test123')
     })
 
     test('Login screen - Invalid login', async ({ page }) => {
-        const auth = page.getByTitle('Auth')
-        const login_menu = page.getByTitle('Login')
-
-        await auth.click()
-        await login_menu.click()
-        await expect(page.locator('h1', { hasText: 'Login' })).toBeVisible()
-
+        const pm = new PageManager(page)
+        await pm.navigateTo.loginAuthPage()
         const email_input = page.locator('#input-email')
         const pass_input = page.locator('#input-password')
         const login_btn = page.getByRole('button', { name: 'Log In' })
-
         await email_input.pressSequentially('mugaz@test.com', { delay: 500 })
         await pass_input.pressSequentially('test', { delay: 10 })
         await login_btn.click()
@@ -81,17 +52,15 @@ test.describe('Select options and dialog box handing', () => {
     })
 
     test('Get the tool tip details', async ({ page }) => {
-        const overlay_menu = page.getByTitle('Modal & Overlays')
-        await overlay_menu.click()
-        const tooltip_menu = page.getByTitle('Tooltip')
-        await tooltip_menu.click()
+        const pm = new PageManager(page)
+        await pm.navigateTo.modalOverlayToolTip()
         page.getByRole('button', { name: 'Right' }).hover()
         await expect(page.getByText('This is a tooltip')).toBeVisible()
     })
 
     test('Handle webpage dialog box', async ({ page }) => {
-        await page.getByTitle('Modal & Overlays').click()
-        await page.getByTitle('Window').click()
+        const pm = new PageManager(page)
+        await pm.navigateTo.modalOverlayDialog()
         await page.getByRole('button', { name: 'Open window with backdrop' }).click()
         await expect(page.getByText('Window content from template')).toBeVisible()
     })
@@ -101,8 +70,8 @@ test.describe('Select options and dialog box handing', () => {
             expect(dialog.message()).toEqual('Are you sure you want to delete?')
             dialog.accept()
            })
-        await page.getByTitle('Tables & Data').click()
-        await page.getByTitle('Smart Table').click()
+           const pm = new PageManager(page)
+        await pm.navigateTo.tableSmartTablePage()
         await page.getByRole('table').locator('tr', {hasText:'mdo@gmail.com'}).locator('.nb-trash').click()
         await expect(page.getByRole('table').locator('tr', {hasText:'mdo@gmail.com'})).not.toBeVisible()
     })
@@ -111,8 +80,8 @@ test.describe('Select options and dialog box handing', () => {
 test.describe('Table element handling', ()=>{
     test.beforeEach(async ({ page }) => {
         await page.goto('http://localhost:4200/')
-        await page.getByTitle('Tables & Data').click()
-        await page.getByTitle('Smart Table').click()
+        const pm = new PageManager(page)
+        await pm.navigateTo.tableSmartTablePage()
     })
     test('Get a cell value for a row', async({page})=>{
         const row = page.getByRole('row', {name: '3'})
@@ -138,8 +107,8 @@ test.describe('Table element handling', ()=>{
 test.describe('Date Picker cases', () =>{
     test.beforeEach(async ({ page }) => {
         await page.goto('http://localhost:4200/')
-        await page.getByTitle('Extra Components').click()
-        await page.getByTitle('Calendar').click()
+        const pm = new PageManager(page)
+        await pm.navigateTo.calenderPage()
     })
     test('Select a date and confirm the selected date', async({page})=>{
         let date = new Date()
